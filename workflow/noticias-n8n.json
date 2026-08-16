@@ -1,0 +1,179 @@
+{
+  "name": "Automação de Notícias",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "45c30a96-878c-4ef7-9a22-b4611aa9f230",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://feeds2.feedburner.com/canaltechbr",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "3543239b-0bba-4b1a-a9ff-c4d79718879a",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "b1be6982-fcd2-440e-b44e-f791c47f9e0c",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Filtre as notícias mais importantes, sendo essas as notícias\n\ntitulo: {{ $json.title }}\nData: {{ $json.pubDate }}\nconteudo: {{ $json.content }}\ncontentSnippet: {{ $json.contentSnippet }}\nlink: {{ $json.link }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "você é uma IA que analisa textos de notícias e devolve apenas um JSON válido. O JSON deve conter os seguintes campos.\n\n- título: título da notícia\n- data: data da notícia\n- resumo: resumo conciso da notícia\n- prioridade: número de 1 a 10 representando a relevância\n- comentarios_importantes: explicação do porque a notícia é relevante\n\nO output deve ser **exclusivamente** um JSON válido com a seguinte estrutura:\n\n{\n\n\"noticias\":  [\n{ \n   \"titulo\": \"string\"\n   \"data\": \"string\"\n   \"resumo\": \"string\"\n   \"prioridade\": número de 1 a 10\n   \"comentario_importancia: \"string\"\n   \"link\": \"string\"\n}\n]\n}\n\nNão inclua nenhuma explicação fora do JSON. Apenas retorne o objeto JSON já formatado, pronto para ser usado no próprio nó do fluxo.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        656,
+        0
+      ],
+      "id": "6ce8a0c3-66c9-4d80-8437-b446bd1018ca",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        656,
+        224
+      ],
+      "id": "4a9646c4-94c8-4350-a071-41798d5d404f",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"noticia\": [\n    {\n      \"titulo\": \"\",\n      \"data\": \"\",\n      \"resumo\": \"\",\n      \"prioridade\": 0,\n      \"comentario_importancia\": \"\",\n      \"link\": \"\"\n    }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        832,
+        208
+      ],
+      "id": "1664d77e-9750-49ed-9026-73a5e7a46e53",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bf8288a1-a49e-494d-9c01-9129a8666a43",
+              "name": "titulo",
+              "value": "={{ $json.output.noticia[0].titulo }}",
+              "type": "string"
+            },
+            {
+              "id": "7dedeaaa-3573-4d21-8f21-042a97d81d73",
+              "name": "data",
+              "value": "={{ $json.output.noticia[0].data }}",
+              "type": "string"
+            },
+            {
+              "id": "3da7f9dc-206a-4c87-8633-0878d13c28ca",
+              "name": "resumo",
+              "value": "={{ $json.output.noticia[0].resumo }}",
+              "type": "string"
+            },
+            {
+              "id": "282ef7fa-f614-436a-9d6e-c769e93e6f1e",
+              "name": "prioridade",
+              "value": "={{ $json.output.noticia[0].prioridade }}",
+              "type": "number"
+            },
+            {
+              "id": "c59a8f68-ac30-41ea-b277-d2c5e1d79364",
+              "name": "comentario",
+              "value": "={{ $json.output.noticia[0].comentario_importancia }}",
+              "type": "string"
+            },
+            {
+              "id": "bcdeaaf9-913b-41a2-8305-ea1bf6c3bdc3",
+              "name": "link",
+              "value": "={{ $json.output.noticia[0].link }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "252eeff2-7d0d-4696-be81-454682cebbc9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "project": {
+          "__rl": true,
+          "mode": "list"
+        },
+        "content": "={{ $item(\"0\").$node[\"Loop Over Items\"].json[\"titulo\"] }}\n\n{{ $item(\"0\").$node[\"Loop Over Items\"].json[\"data\"] }}\n\n{{ $item(\"0\").$node[\"Loop Over Items\"].json[\"resumo\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.todoist",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        16
+      ],
+      "id": "2a4253cd-4a93-4b6f-9a2d-33d96773a0af",
+      "name": "Create a task"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1280,
+        16
+      ],
+      "id": "1c9040ec-80ee-439f-8139-853650b13b39",
+      "name": "Loop Over Items"
+    }
+  ],
+  "pinData": {}
+}
