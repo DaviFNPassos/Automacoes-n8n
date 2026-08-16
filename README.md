@@ -175,7 +175,7 @@ automacao-noticias-n8n/
 Importe o arquivo:
 
 ```text
-workflow/noticias-n8n.json
+Workflow-noticia-n8n.json
 ```
 
 ### 3. Configure as credenciais
