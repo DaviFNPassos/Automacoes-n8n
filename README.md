@@ -1,4 +1,4 @@
-# 🤖 AI News-to-Task Automation
+# 🤖 Automação de noticias com IA
 
 Automação desenvolvida com **n8n** que utiliza **Inteligência Artificial** para analisar conteúdos recebidos através de um feed RSS e transformar as informações processadas em tarefas estruturadas.
 
